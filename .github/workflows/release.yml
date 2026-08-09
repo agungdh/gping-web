@@ -1,0 +1,75 @@
+name: CI
+
+permissions:
+  contents: write # Required to upload assets to the GitHub Release
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  release:
+    types: [published]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.release.tag_name || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: typecheck
+    runs-on: ubuntu-24.04
+    if: github.event_name != 'release'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck
+        run: bun run check
+
+  release:
+    name: build and upload
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'release'
+    env:
+      VERSION: ${{ github.event.release.tag_name }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build
+        run: bun run build
+
+      - name: Package
+        run: |
+          ARCHIVE="gping-web-${VERSION}"
+          STAGE="/tmp/stage"
+          mkdir -p "$STAGE"
+          cp -r build/. "$STAGE/"
+          tar -czf "${ARCHIVE}.tar.gz" -C "$STAGE" .
+          sha256sum "${ARCHIVE}.tar.gz" > "${ARCHIVE}.tar.gz.sha256"
+          ls -lh "${ARCHIVE}.tar.gz"
+
+      - name: Upload release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$VERSION" gping-web-${VERSION}.tar.gz gping-web-${VERSION}.tar.gz.sha256 --clobber
