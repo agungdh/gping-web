@@ -41,6 +41,13 @@
 	});
 
 	const hosts: Host[] = $derived.by(() => snapshot?.hosts ?? []);
+	const retentionLabel = $derived.by(() => {
+		const secs = snapshot?.retention_secs;
+		if (!secs) return 'retention';
+		if (secs % 3600 === 0) return `${secs / 3600}h`;
+		if (secs % 60 === 0) return `${secs / 60}m`;
+		return `${secs}s`;
+	});
 	const palette = ['#22d3ee', '#a3e635', '#f472b6', '#fbbf24', '#a78bfa', '#34d399'];
 
 	function statusDot(): string {
@@ -104,7 +111,7 @@
 						color={palette[i % palette.length]}
 					/>
 					<div
-						class="mt-3 grid grid-cols-3 gap-2 border-t border-zinc-800 pt-3 font-mono text-xs sm:grid-cols-7"
+						class="mt-3 grid grid-cols-3 gap-2 border-t border-zinc-800 pt-3 font-mono text-xs sm:grid-cols-8"
 					>
 						<div class="flex flex-col">
 							<span class="text-zinc-500">last</span>
@@ -134,6 +141,12 @@
 							<span class="text-zinc-500">timeouts</span>
 							<span class={host.stats.timeouts ? 'text-red-400' : 'text-zinc-200'}>
 								{host.stats.timeouts ?? '—'}
+							</span>
+						</div>
+						<div class="flex flex-col">
+							<span class="text-zinc-500">timeouts ({retentionLabel})</span>
+							<span class={host.stats.timeouts_retention ? 'text-red-400' : 'text-zinc-200'}>
+								{host.stats.timeouts_retention ?? '—'}
 							</span>
 						</div>
 					</div>

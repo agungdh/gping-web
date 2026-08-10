@@ -13,6 +13,8 @@ export interface HostStats {
 	jitter_us: number | null;
 	p95_us: number | null;
 	timeouts: number | null;
+	/** Timeout count over the full backend retention period (independent of the displayed window). */
+	timeouts_retention: number | null;
 }
 
 export interface Host {
