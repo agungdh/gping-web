@@ -1,7 +1,9 @@
 import { env } from '$env/dynamic/public';
 import type { Snapshot } from './types';
 
-export const apiBase = (env.PUBLIC_GPING_API || 'http://127.0.0.1:8080').replace(/\/+$/, '');
+// Same-origin by default (the gping HTTP server serves this UI and its API from
+// one port). Set PUBLIC_GPING_API when the UI is hosted separately from the API.
+export const apiBase = (env.PUBLIC_GPING_API || '').replace(/\/+$/, '');
 
 /** How many minutes of history to request from the server (default 60 = 1 hour). */
 const WINDOW_MINUTES = '60';

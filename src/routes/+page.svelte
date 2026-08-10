@@ -71,7 +71,7 @@
 				<span class={`h-2 w-2 rounded-full ${statusDot()}`}></span>
 				{error ? 'disconnected' : connected ? 'connected' : 'connecting'}
 			</span>
-			<span>api: {apiBase}</span>
+			<span>api: {apiBase || 'same-origin'}</span>
 			{#if lastUpdated}<span>updated {lastUpdatedText()}</span>{/if}
 		</div>
 	</header>
